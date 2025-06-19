@@ -6,6 +6,7 @@
 
 This project demonstrates a full modern data pipeline with synthetic demographic data. The process includes data generation, transformation, loading into different data warehouses, and dashboard visualization.
 
+# To use the project create `data/` folder with number of XLSX files
 ---
 
 ## Pipeline Overview
