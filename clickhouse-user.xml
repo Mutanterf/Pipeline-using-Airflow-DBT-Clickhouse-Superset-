@@ -1,0 +1,19 @@
+<clickhouse>
+  <listen_host>::</listen_host>
+  <users>
+    <default>
+      <password></password>
+      <networks>
+        <ip>0.0.0.0/0</ip>
+      </networks>
+    </default>
+    <nit_data>
+      <password>Mika2u7w</password>
+      <networks>
+        <ip>0.0.0.0/0</ip>
+      </networks>
+      <profile>default</profile>
+      <quota>default</quota>
+    </nit_data>
+  </users>
+</clickhouse>

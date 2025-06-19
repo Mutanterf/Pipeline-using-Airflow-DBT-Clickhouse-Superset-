@@ -1,0 +1,94 @@
+version: '3'
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - ./clickhouse-user.xml:/etc/clickhouse-server/users.d/custom-users.xml:ro
+
+  airflow-init:
+    image: apache/airflow:2.7.0
+    depends_on:
+      - clickhouse
+    environment:
+      AIRFLOW__WEBSERVER__SECRET_KEY: Mika2u7w
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:Mika2u7w@host.docker.internal:5432/data_filter
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+    entrypoint: ["airflow", "db", "init"]
+
+  airflow-webserver:
+    build: .
+    image: airflow-custom
+    restart: always
+    depends_on:
+      - airflow-init
+      - airflow-scheduler
+    environment:
+      AIRFLOW__WEBSERVER__SECRET_KEY: Mika2u7w
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:Mika2u7w@host.docker.internal:5432/data_filter
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: Mika2u7w
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+      - airflow_webserver_data:/opt/airflow/webserver_session
+    ports:
+      - "8080:8080"
+    command: webserver
+
+  airflow-scheduler:
+    build: .
+    image: airflow-custom
+    restart: always
+    depends_on:
+      - airflow-init
+    environment:
+      AIRFLOW__WEBSERVER__SECRET_KEY: Mika2u7w
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:Mika2u7w@host.docker.internal:5432/data_filter
+      AIRFLOW__CORE__FERNET_KEY: 'Mika2005'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./data:/opt/airflow/data
+    command: scheduler
+
+  superset:
+    image: apache/superset:latest
+    container_name: superset
+    environment:
+      - SUPERSET_SECRET_KEY=Mika2u7w
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+      - ADMIN_EMAIL=mutanterfmika@gmail.com
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./superset:/app/superset_home
+      - superset_data:/app/superset_home/.superset
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+    depends_on:
+      - clickhouse
+    command: >
+      /bin/bash -c "
+      pip install clickhouse-connect &&
+      /app/superset_home/docker-init.sh &&
+      superset run -h 0.0.0.0 -p 8088"
+
+
+volumes:
+  superset_data:
+  airflow_webserver_data:
+  postgres_data:

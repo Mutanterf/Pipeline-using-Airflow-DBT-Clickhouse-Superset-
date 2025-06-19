@@ -1,0 +1,6 @@
+apache-airflow==2.7.0
+sqlalchemy
+clickhouse-driver
+pandas
+openpyxl
+clickhouse-connect

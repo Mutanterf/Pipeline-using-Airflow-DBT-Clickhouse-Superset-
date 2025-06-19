@@ -1,0 +1,25 @@
+
+version: 2
+
+sources:
+  - name: public
+    database: data_filter
+    schema: public
+    tables:
+      - name: cks
+      - name: cks_analysis
+
+models:
+  - name: cks_long
+    description: "transform from wide to long format"
+    columns:
+      - name: filter_code
+        description: "Filter code for each family"
+        data_tests:
+          - not_null
+      - name: filter_value
+        description: "Filter value for codes"
+        data_tests:
+          - not_null
+
+
